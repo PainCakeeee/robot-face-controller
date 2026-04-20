@@ -1,0 +1,5 @@
+{
+  "name": "Robot Face Controller",
+  "description": "A dual-window application featuring an interactive robot face and a background control panel to trigger animations and display knowledge results.",
+  "requestFramePermissions": []
+}

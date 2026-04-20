@@ -1,0 +1,9 @@
+{
+  "pkg": {
+    "targets": ["win-x64"],
+    "outputPath": "./build",
+    "scripts": ["./server.js", "./dist/**/*"],
+    "assets": ["./dist/**/*", "./package.json"],
+    "icon": "./1.ico"
+  }
+}
