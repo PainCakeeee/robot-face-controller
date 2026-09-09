@@ -1,16 +1,34 @@
 import { motion } from 'motion/react';
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { ResultType, KnowledgePoint } from '../types';
+import { ResultType, KnowledgePoint, ResultLanguage } from '../types';
 
 interface ResultPageProps {
   type: ResultType;
   knowledge: KnowledgePoint;
+  language: ResultLanguage;
   onBack: () => void;
   showAnimations?: boolean; // Controls text animation and overlay
 }
 
 const RESULT_TYPES: ResultType[] = ['Creative', 'Beautiful', 'Professional', 'Genius'];
+const RESULT_TEXT_PATHS: Record<ResultLanguage, Record<ResultType, string>> = {
+  en: {
+    Creative: '/result-text/creative.svg',
+    Beautiful: '/result-text/beautiful.svg',
+    Professional: '/result-text/professional.svg',
+    Genius: '/result-text/genius.svg',
+  },
+  fi: {
+    Creative: '/result-text/creative.fi.svg',
+    Beautiful: '/result-text/beautiful.fi.svg',
+    Professional: '/result-text/professional.fi.svg',
+    Genius: '/result-text/genius.fi.svg',
+  },
+};
+const RESULT_TEXT_LEFT = '50%';
+const RESULT_TEXT_TOP = '22%';
+const RESULT_TEXT_WIDTH = '70%';
 
 // Global audio cache to ensure audio is loaded only once and reused
 let audioCache: HTMLAudioElement | null = null;
@@ -95,10 +113,10 @@ const playAudio = async (): Promise<void> => {
   }
 };
 
-export default function ResultPage({ type, knowledge, onBack, showAnimations = true }: ResultPageProps) {
+export default function ResultPage({ type, knowledge, language, onBack, showAnimations = true }: ResultPageProps) {
   // Construct the image path based on knowledge point ID
   // All images are in jpg format
-  const resultImagePath = `/result/${knowledge.id}.jpg`;
+  const resultImagePath = `/result/${knowledge.id}${language === 'fi' ? '.1' : ''}.jpg`;
   const [displayType, setDisplayType] = useState<ResultType>(type);
   const [isFinished, setIsFinished] = useState(!showAnimations); // Skip animation if showAnimations is false
   const audioPlayedRef = useRef(false);
@@ -154,89 +172,86 @@ export default function ResultPage({ type, knowledge, onBack, showAnimations = t
         timerRef.current = null;
       }
     };
-  }, [type, showAnimations]);
+  }, [type, showAnimations, language]);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative min-h-screen w-screen overflow-hidden"
+      className="flex min-h-screen w-screen items-center justify-center overflow-hidden"
+      style={{ backgroundColor: '#F5ECDD' }}
     >
-      {/* Full screen result image */}
-      <img
-        src={resultImagePath}
-        alt="result"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-
-      {/* Back Button - Top Right with responsive sizing */}
-      <motion.button
-        onClick={onBack}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed right-[2vw] top-[2vw] z-30 inline-flex items-center gap-2 rounded-full border-2 border-slate-900 bg-white/90 px-4 py-2 font-semibold text-slate-900 transition-colors hover:bg-white hover:shadow-lg"
+      <div
+        className="relative overflow-hidden"
+        style={{
+          width: 'min(100vw, calc(100vh * 16 / 9))',
+          height: 'min(100vh, calc(100vw * 9 / 16))',
+        }}
       >
-        <ArrowLeft size={18} />
-        Back
-      </motion.button>
-
-      {/* Overlay - Bottom half cover during animation and result reveal */}
-      {showAnimations && (
-        <motion.div
-          initial={{ y: 0 }}
-          animate={isFinished ? { y: window.innerHeight } : { y: 0 }}
-          transition={{ delay: 1, duration: 0.8, ease: 'easeInOut' }}
-          className="fixed left-0 right-0 bottom-0 z-25 pointer-events-none"
-          style={{ backgroundColor: '#F5ECDD', height: '55vh', top: '45vh' }}
+        {/* Full screen result image */}
+        <img
+          src={resultImagePath}
+          alt="result"
+          className="absolute inset-0 h-full w-full object-cover"
         />
-      )}
 
-      {/* Result Type Text Image - Top Center */}
-      {/* 
-        ⚠️ 结果文字位置配置在这里 - 需要调整时请修改下方 style 中的 left 和 top 值
-        当前设置: left: '50%' (水平中心), top: '25%' (距离顶部25%)
-        调整建议:
-        - 向上移动: 减小 top 值 (如 20%, 15%)
-        - 向下移动: 增大 top 值 (如 30%, 35%)
-        - 向左移动: 减小 left 值 (如 45%)
-        - 向右移动: 增大 left 值 (如 55%)
-      */}
-      {showAnimations && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="fixed z-20"
-          style={{ 
-            left: '48%',      // 水平位置: 改为 '45%' 或 '55%' 等
-            top: '22%',       // 垂直位置: 改为 '20%', '30%' 等
-            transform: 'translate(-50%, -50%)',
-            overflow: 'visible',
-            pointerEvents: 'none'
-          }}
+        {/* Back Button - Top Right with responsive sizing */}
+        <motion.button
+          onClick={onBack}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="absolute right-[2.2%] top-[2.2%] z-30 inline-flex items-center gap-2 rounded-full border-2 border-slate-900 bg-white/90 px-4 py-2 font-semibold text-slate-900 transition-colors hover:bg-white hover:shadow-lg"
         >
-          <motion.img
-            key={displayType}
-            src={`/result-text/${displayType.toLowerCase()}.svg`}
-            alt={displayType}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ 
-              opacity: 1, 
-              scale: displayType === type ? 1 : 0.8 
-            }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.05 }}
-            style={{ 
-              width: '90vw',
-              maxWidth: '600px',
-              height: 'auto',
-              display: 'block',
-              margin: '0 auto'
-            }}
+          <ArrowLeft size={18} />
+          Back
+        </motion.button>
+
+        {/* Overlay - Bottom half cover during animation and result reveal */}
+        {showAnimations && (
+          <motion.div
+            initial={{ y: 0 }}
+            animate={isFinished ? { y: '100%' } : { y: 0 }}
+            transition={{ delay: 1, duration: 0.8, ease: 'easeInOut' }}
+            className="absolute inset-x-0 bottom-0 z-25 pointer-events-none"
+            style={{ backgroundColor: '#F5ECDD', height: '55%' }}
           />
-        </motion.div>
-      )}
+        )}
+
+        {/* Result Type Text Image - Positioned in the same 16:9 canvas as the result art */}
+        {showAnimations && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="absolute z-20 pointer-events-none"
+            style={{
+              left: RESULT_TEXT_LEFT,
+              top: RESULT_TEXT_TOP,
+              transform: 'translate(-50%, -50%)',
+              overflow: 'visible',
+            }}
+          >
+            <motion.img
+              key={`${language}-${displayType}`}
+              src={RESULT_TEXT_PATHS[language][displayType]}
+              alt={displayType}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{
+                opacity: 1,
+                scale: displayType === type ? 1 : 0.8,
+              }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.05 }}
+              style={{
+                width: RESULT_TEXT_WIDTH,
+                height: 'auto',
+                display: 'block',
+              }}
+            />
+          </motion.div>
+        )}
+      </div>
     </motion.div>
   );
 }

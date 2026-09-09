@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Monitor, Settings, Play, Scan, Brain, Sparkles, RefreshCcw, Maximize2, Minimize2 } from 'lucide-react';
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { useRobotControl, KNOWLEDGE_POINTS, ResultType } from './types';
+import { useRobotControl, KNOWLEDGE_POINTS, ResultType, ResultLanguage } from './types';
 import RobotFace from './components/RobotFace';
 import ResultPage from './components/ResultPage';
 import DisplayPreview from './components/DisplayPreview';
@@ -61,7 +61,7 @@ function DisplayPage() {
   const [showResultPage, setShowResultPage] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const displayRootRef = useRef<HTMLDivElement | null>(null);
-  const { state, resultType, knowledgeId, sendMessage } = useRobotControl('display');
+  const { state, resultType, knowledgeId, resultLanguage, sendMessage } = useRobotControl('display');
 
   const currentKnowledge = knowledgeId ? KNOWLEDGE_POINTS.find(k => k.id === knowledgeId) : null;
 
@@ -160,6 +160,7 @@ function DisplayPage() {
             <ResultPage
               type={resultType}
               knowledge={currentKnowledge}
+              language={resultLanguage}
               onBack={() => sendMessage({ type: 'SET_STATE', state: 'idle' })}
             />
           )
@@ -180,9 +181,10 @@ function DisplayPage() {
 
 function ControlPage() {
   const navigate = useNavigate();
-  const { state, resultType, knowledgeId, sendMessage } = useRobotControl('controller');
+  const { state, resultType, knowledgeId, resultLanguage, sendMessage } = useRobotControl('controller');
   const [selectedResultType, setSelectedResultType] = useState<ResultType | null>(resultType);
   const [selectedKnowledgeId, setSelectedKnowledgeId] = useState<number | null>(knowledgeId);
+  const [selectedLanguage, setSelectedLanguage] = useState<ResultLanguage>(resultLanguage);
 
   useEffect(() => {
     setSelectedResultType(resultType);
@@ -191,6 +193,10 @@ function ControlPage() {
   useEffect(() => {
     setSelectedKnowledgeId(knowledgeId);
   }, [knowledgeId]);
+
+  useEffect(() => {
+    setSelectedLanguage(resultLanguage);
+  }, [resultLanguage]);
 
   const canConfirmResult = selectedResultType !== null && selectedKnowledgeId !== null;
 
@@ -202,6 +208,7 @@ function ControlPage() {
       state: 'result',
       resultType: selectedResultType,
       knowledgeId: selectedKnowledgeId,
+      resultLanguage: selectedLanguage,
     });
   };
 
@@ -278,23 +285,23 @@ function ControlPage() {
           </div>
 
           {/* Right Column - Result Generation */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <section className="bg-white rounded-3xl shadow-sm border border-slate-100" style={{ width: '100%', padding: '34px' }}>
-              <h2 className="flex items-center gap-2" style={{ fontSize: '18px', fontWeight: '600', marginBottom: '34px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+            <section className="bg-white rounded-3xl shadow-sm border border-slate-100" style={{ width: '100%', padding: '24px' }}>
+              <h2 className="flex items-center gap-2" style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>
                 <Sparkles size={18} className="text-purple-500" />
                 Result Generation
               </h2>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '42px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>
-                  <label className="text-sm font-medium text-slate-500 block" style={{ marginBottom: '21px' }}>1. Select Result Type</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: '25px' }}>
+                  <label className="text-sm font-medium text-slate-500 block" style={{ marginBottom: '12px' }}>1. Select Result Type</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: '14px' }}>
                     {(['Creative', 'Beautiful', 'Professional', 'Genius'] as ResultType[]).map((type) => (
                       <button
                         key={type}
                         onClick={() => setSelectedResultType(type)}
                         className={`rounded-xl border transition-all text-sm font-bold ${selectedResultType === type ? 'bg-purple-600 border-purple-600 text-white' : 'bg-slate-50 border-slate-100 hover:border-purple-300 hover:bg-purple-50 text-slate-700'}`}
-                        style={{ padding: '21px' }}
+                        style={{ padding: '14px' }}
                       >
                         {type}
                       </button>
@@ -303,16 +310,35 @@ function ControlPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-slate-500 block" style={{ marginBottom: '21px' }}>2. Select Knowledge Point</label>
-                  <div className="grid grid-cols-3" style={{ gap: '21px' }}>
+                  <label className="text-sm font-medium text-slate-500 block" style={{ marginBottom: '12px' }}>2. Select Knowledge Point</label>
+                  <div className="grid grid-cols-3" style={{ gap: '14px' }}>
                     {KNOWLEDGE_POINTS.map((kp) => (
                       <button
                         key={kp.id}
                         onClick={() => setSelectedKnowledgeId(kp.id)}
                         className={`rounded-lg border transition-all font-bold flex items-center justify-center text-4xl ${selectedKnowledgeId === kp.id ? 'bg-purple-600 border-purple-600 text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                        style={{ padding: '38px 0px' }}
+                        style={{ padding: '28px 0px' }}
                       >
                         {KNOWLEDGE_EMOJIS[kp.id] || kp.id}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-500 block" style={{ marginBottom: '12px' }}>3. Select Language</label>
+                  <div className="grid grid-cols-2" style={{ gap: '14px' }}>
+                    {([
+                      { value: 'en' as ResultLanguage, label: 'English' },
+                      { value: 'fi' as ResultLanguage, label: 'Finnish' },
+                    ]).map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setSelectedLanguage(option.value)}
+                        className={`rounded-xl border transition-all text-sm font-bold ${selectedLanguage === option.value ? 'bg-purple-600 border-purple-600 text-white' : 'bg-slate-50 border-slate-100 hover:border-purple-300 hover:bg-purple-50 text-slate-700'}`}
+                        style={{ padding: '14px' }}
+                      >
+                        {option.label}
                       </button>
                     ))}
                   </div>
@@ -322,7 +348,7 @@ function ControlPage() {
                   onClick={handleConfirmResult}
                   disabled={!canConfirmResult}
                   className={`w-full rounded-xl font-bold transition-all ${canConfirmResult ? 'bg-purple-600 text-white hover:bg-purple-500' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
-                  style={{ padding: '17px' }}
+                  style={{ padding: '14px' }}
                 >
                   Confirm
                 </button>

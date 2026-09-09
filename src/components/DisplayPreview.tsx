@@ -5,7 +5,7 @@ import ResultPage from './ResultPage';
 import { useState, useEffect } from 'react';
 
 export default function DisplayPreview() {
-  const { state, resultType, knowledgeId, sendMessage } = useRobotControl('preview');
+  const { state, resultType, knowledgeId, resultLanguage } = useRobotControl('preview');
   const [showResultPage, setShowResultPage] = useState(false);
   const currentKnowledge = knowledgeId ? KNOWLEDGE_POINTS.find(k => k.id === knowledgeId) : null;
 
@@ -95,6 +95,7 @@ export default function DisplayPreview() {
                 <ResultPage
                   type={resultType}
                   knowledge={currentKnowledge}
+                  language={resultLanguage}
                   onBack={() => {}}
                   showAnimations={false}
                 />

@@ -1,0 +1,15 @@
+<svg width="2000" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      text {
+        font-family: Arial, sans-serif;
+        font-weight: bold;
+        font-size: 300px;
+        fill: #DC2626;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+    </style>
+  </defs>
+  <text x="1000" y="200">kaunis</text>
+</svg>

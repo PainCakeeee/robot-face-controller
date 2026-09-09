@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 export type RobotState = 'idle' | 'scanning' | 'thinking' | 'result' | 'love' | 'surprise';
 export type ResultType = 'Creative' | 'Beautiful' | 'Professional' | 'Genius';
+export type ResultLanguage = 'en' | 'fi';
 
 export interface KnowledgePoint {
   id: number;
@@ -22,12 +23,14 @@ export interface ControlMessage {
   state: RobotState;
   resultType?: ResultType;
   knowledgeId?: number;
+  resultLanguage?: ResultLanguage;
 }
 
 export const useRobotControl = (role: 'display' | 'controller' | 'preview') => {
   const [state, setState] = useState<RobotState>('idle');
   const [resultType, setResultType] = useState<ResultType | null>(null);
   const [knowledgeId, setKnowledgeId] = useState<number | null>(null);
+  const [resultLanguage, setResultLanguage] = useState<ResultLanguage>('en');
 
   useEffect(() => {
     const channel = new BroadcastChannel('robot-control');
@@ -37,6 +40,7 @@ export const useRobotControl = (role: 'display' | 'controller' | 'preview') => {
         setState(event.data.state);
         if (event.data.resultType) setResultType(event.data.resultType);
         if (event.data.knowledgeId) setKnowledgeId(event.data.knowledgeId);
+        if (event.data.resultLanguage) setResultLanguage(event.data.resultLanguage);
       }
     };
 
@@ -56,7 +60,8 @@ export const useRobotControl = (role: 'display' | 'controller' | 'preview') => {
     setState(msg.state);
     if (msg.resultType) setResultType(msg.resultType);
     if (msg.knowledgeId) setKnowledgeId(msg.knowledgeId);
+    if (msg.resultLanguage) setResultLanguage(msg.resultLanguage);
   };
 
-  return { state, resultType, knowledgeId, sendMessage };
+  return { state, resultType, knowledgeId, resultLanguage, sendMessage };
 };
